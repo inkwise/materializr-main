@@ -1,0 +1,47 @@
+# Third-party components (Android build)
+
+The Android port links the same core dependencies as desktop Materializr, plus
+SDL3 in place of GLFW. None are vendored in this repo; `scripts/setup-deps.sh`
+fetches and (where needed) cross-compiles them.
+
+| Component | Version | License | Role |
+|---|---|---|---|
+| [OpenCASCADE Technology](https://github.com/Open-Cascade-SAS/OCCT) | 7.8.1 | LGPL-2.1 (with exception) | CAD geometry kernel |
+| [SDL3](https://github.com/libsdl-org/SDL) | 3.4.18 | Zlib | Windowing, input, GL context (desktop + Android) |
+| [Dear ImGui](https://github.com/ocornut/imgui) | docking | MIT | UI |
+| [GLM](https://github.com/g-truc/glm) | 1.0.1 | MIT | Vector/matrix math |
+| [FreeType](https://freetype.org/) | 2.13.3 | FTL / GPL-2.0 | TrueType outlines (linked into OCCT TKService) |
+
+OpenCASCADE is LGPL: it is linked as shared libraries (`libTK*.so`), so the
+LGPL's dynamic-linking allowance applies. The cross-build disables the Draw
+(Tcl/Tk) harness and other optional modules; see `scripts/setup-deps.sh` for the
+exact configuration.
+
+## Bundled fonts
+
+The sketch Text tool ships 10 TrueType fonts (in `assets/fonts/`, also mirrored
+under `android/app/src/main/assets/`). All are free/redistributable - SIL Open
+Font License 1.1, the Ubuntu Font Licence 1.0, or the Bitstream Vera/Arev
+permissive license. Per-font copyright notices, the picker mapping, and the full
+license texts are in `assets/fonts/FONT-CREDITS.md` and `assets/fonts/licenses/`.
+
+The UI also ships a 2.2 MB GB2312 subset of Noto Sans SC
+(`MaterializrSansSC-UI.ttf`, SIL OFL 1.1), merged into the ImGui font as the
+CJK fallback for the Chinese interface. It is not offered by the Text tool; its
+copyright and license are in `assets/fonts/licenses/NotoSansSC-OFL.txt`.
+
+Note: "Times (Liberation)" and "Arial (Liberation)" are the OFL Liberation fonts,
+which are *metric-compatible* stand-ins for the proprietary Microsoft fonts - the
+real Times New Roman / Arial are NOT bundled.
+
+Materializr's own source is under the license in the repository root `LICENSE`.
+
+## Vendored SDL Java (org.libsdl.app)
+
+`app/src/main/java/org/libsdl/app/*.java` is SDL 3.4.18's own Android Java half,
+copied unmodified from the release tarball's `android-project/` EXCEPT one edit:
+`SDLActivity.ShowTextInputTask.run()` calls `showSoftInput(mTextEdit,
+InputMethodManager.SHOW_FORCED)` instead of flag `0`, because Android ignores `0`
+in our immersive window and the soft keyboard never appeared. It must stay in
+step with the native SDL version `scripts/setup-deps.sh` links (JNI names are
+matched by exact signature); re-apply that edit when bumping.
